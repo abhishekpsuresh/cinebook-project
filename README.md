@@ -90,16 +90,6 @@ A firewall was implemented using Azure Network Security Group (NSG) to control i
 
 ---
 
-## 📸 Screenshots Included
-
-* Azure deployment dashboard
-* GitHub repository
-* Static Web App configuration
-* NSG firewall rules
-* Live application
-
----
-
 ## 🎯 Security Justification
 
 The system implements multiple layers of security including firewall restrictions, input validation, secure authentication, and encrypted communication. By allowing only essential ports (80 and 443), the attack surface is minimized. Azure’s managed infrastructure further enhances security with built-in protections.
@@ -115,6 +105,5 @@ The CineBook Pro application was successfully deployed on Microsoft Azure with p
 ## 👨‍💻 Author
 
 **Abhishek P Suresh**
-BCA Student | Cybersecurity Enthusiast
 
 ---
