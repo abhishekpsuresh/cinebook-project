@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineBook Pro | Book Movies Online</title>
+    
+    <!-- SECURITY HEADERS -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: 'unsafe-inline'; img-src 'self' https: data: blob:; script-src 'self' https: 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' https: 'unsafe-inline';">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Poppins', sans-serif;
+            background: #0f0f0f;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f5c518;
+            border-radius: 10px;
+        }
+
+        .toast-notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            min-width: 280px;
+            max-width: 400px;
+            background: #1a1a1a;
+            border-left: 4px solid;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .toast-notification.success { border-left-color: #4caf50; background: #1a1a1a; }
+        .toast-notification.error { border-left-color: #f44336; background: #1a1a1a; }
+        .toast-notification.info { border-left-color: #2196f3; background: #1a1a1a; }
+        .toast-notification.warning { border-left-color: #ff9800; background: #1a1a1a; }
+        
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .toast-icon { font-size: 24px; }
+        .toast-message { flex: 1; font-size: 0.9rem; }
+        .toast-close { cursor: pointer; font-size: 18px; color: #888; }
+        .toast-close:hover { color: #fff; }
+        
+        .navbar {
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(245,197,24,0.3);
+        }
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f5c518, #ff6b35);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .logo span { font-size: 2rem; }
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+        .nav-links a:hover { color: #f5c518; }
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn-primary {
+            background: #f5c518;
+            color: #000;
+        }
+        .btn-primary:hover { transform: scale(1.05); }
+        .btn-secondary {
+            background: #2a2a2a;
+            color: #fff;
+            border: 1px solid #f5c518;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #f5c518, #ff6b35);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1600');
+            background-size: cover;
+            background-position: center;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .hero h1 span { color: #f5c518; }
+        .hero p {
+            font-size: 1.2rem;
+            color: #ccc;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #f5c518;
+            padding-left: 1rem;
+        }
+
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        .movie-card {
+            background: #1a1a1a;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 1px solid #2a2a2a;
+        }
+        .movie-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(245,197,24,0.2);
+            border-color: #f5c518;
+        }
+        .movie-poster {
+            height: 380px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            background-color: #2a2a2a;
+        }
+        .movie-rating {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #f5c518;
+            color: #000;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        .movie-info {
+            padding: 1rem;
+        }
+        .movie-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .movie-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .book-btn {
+            width: 100%;
+            background: #f5c518;
+            color: #000;
+            border: none;
+            padding: 0.7rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: all 0.2s;
+        }
+        .book-btn:hover {
+            background: #ff6b35;
+            color: #fff;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background: #1a1a1a;
+            border-radius: 20px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2rem;
+            position: relative;
+        }
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #f5c518;
+        }
+        .modal-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #f5c518;
+        }
+
+        .theater-list, .dates-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .showtimes {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .theater-item, .showtime-btn, .payment-method, .date-btn {
+            background: #2a2a2a;
+            padding: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #3a3a3a;
+        }
+        .date-btn {
+            text-align: center;
+            min-width: 120px;
+        }
+        .date-btn.selected {
+            background: #f5c518;
+            color: #000;
+            border-color: #f5c518;
+        }
+        .date-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #2a2a2a;
+        }
+        .showtime-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #2a2a2a;
+        }
+        .theater-item:hover, .payment-method:hover, .date-btn:hover:not(.disabled) {
+            background: #3a3a3a;
+            border-color: #f5c518;
+        }
+        .showtime-btn:hover:not(.disabled) {
+            background: #3a3a3a;
+            border-color: #f5c518;
+        }
+        .showtime-btn {
+            padding: 0.5rem 1.5rem;
+        }
+
+        .screen {
+            background: #333;
+            text-align: center;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 10px;
+            font-weight: bold;
+            letter-spacing: 5px;
+        }
+        .seats-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        .seat {
+            aspect-ratio: 1;
+            background: #2a2a2a;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .seat.available:hover {
+            background: #f5c518;
+            color: #000;
+            transform: scale(1.05);
+        }
+        .seat.selected {
+            background: #4caf50;
+            color: #fff;
+        }
+        .seat.booked {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .legend {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin: 1rem 0;
+            font-size: 0.8rem;
+            flex-wrap: wrap;
+        }
+        .legend div {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .legend .seat {
+            width: 25px;
+            height: 25px;
+            margin: 0;
+        }
+
+        .booking-summary {
+            background: #2a2a2a;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+        }
+        .confirm-btn {
+            width: 100%;
+            background: #f5c518;
+            color: #000;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        .confirm-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .payment-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .ticket {
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+            border: 2px solid #f5c518;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .download-btn {
+            background: #25D366;
+            color: #fff;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            color: #fff;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .footer {
+            background: #0a0a0a;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            border-top: 1px solid #2a2a2a;
+        }
+
+        @media (max-width: 768px) {
+            .seats-grid {
+                grid-template-columns: repeat(8, 1fr);
+                gap: 0.3rem;
+            }
+            .hero h1 {
+                font-size: 2rem;
+            }
+            .movie-poster {
+                height: 280px;
+            }
+            .date-btn {
+                min-width: 90px;
+                font-size: 0.8rem;
+                padding: 0.7rem;
+            }
+        }
+        
+        .security-banner {
+            background: #1a472a;
+            color: #4caf50;
+            text-align: center;
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            font-family: monospace;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #2a2a2a;
+            border-top-color: #f5c518;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .past-indicator {
+            background: #f44336;
+            color: white;
+            font-size: 0.6rem;
+            margin-left: 0.5rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="security-banner">
+        🔒 SHA-256 Password Hashing | XSS Protected | Past Showtime Blocked | Secure Sessions | X-Frame Denied
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span>🎬</span> CineBook Pro
+            </div>
+            <div class="nav-links">
+                <a onclick="showSection('movies')">Movies</a>
+                <a onclick="showSection('bookings')" id="myBookingsLink" style="display:none;">My Bookings</a>
+                <div class="user-section">
+                    <div id="userAvatar" class="user-avatar" style="display:none;" onclick="showBookings()"></div>
+                    <button id="loginNavBtn" class="btn btn-primary" onclick="openAuthModal('login')">Login</button>
+                    <button id="signupNavBtn" class="btn btn-secondary" onclick="openAuthModal('signup')">Sign Up</button>
+                    <button id="logoutNavBtn" class="btn btn-secondary" onclick="logout()" style="display:none;">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="hero" id="homeHero">
+        <h1>Book Your <span>Movie Tickets</span> Online</h1>
+        <p>Experience cinema like never before | Best prices | Premium seats</p>
+    </div>
+
+    <div class="container" id="moviesSection">
+        <h2 class="section-title">🎬 Now Showing</h2>
+        <div class="movie-grid" id="movieGrid"></div>
+        <h2 class="section-title">⭐ Top Rated</h2>
+        <div class="movie-grid" id="topRatedGrid"></div>
+    </div>
+
+    <div class="container" id="bookingsSection" style="display:none;">
+        <h2 class="section-title">🎟️ My Bookings</h2>
+        <div id="bookingsList"></div>
+    </div>
+
+    <div id="authModal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <span class="close-modal" onclick="closeAuthModal()">&times;</span>
+            <div id="authFormContainer"></div>
+        </div>
+    </div>
+
+    <div id="bookingModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeBookingModal()">&times;</span>
+            <div id="bookingSteps"></div>
+        </div>
+    </div>
+
+    <div id="paymentModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-modal" onclick="closePaymentModal()">&times;</span>
+            <h2 class="modal-title">💳 Payment</h2>
+            <div class="payment-options">
+                <div class="payment-method" onclick="processPayment('card')">💳 Credit/Debit Card</div>
+                <div class="payment-method" onclick="processPayment('upi')">📱 UPI</div>
+                <div class="payment-method" onclick="processPayment('netbanking')">🏦 Net Banking</div>
+                <div class="payment-method" onclick="processPayment('wallet')">👛 Wallet</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2025 CineBook Pro | Secure Booking System | SHA-256 Password Hashing</p>
+        <p style="margin-top:0.5rem; font-size:0.8rem;">🔒 Cannot book past shows | Real-time validation</p>
+    </footer>
+
+    <script>
+        // ========== SECURE PASSWORD HASHING (SHA-256) ==========
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        
+        function generateSalt() {
+            const array = new Uint8Array(16);
+            crypto.getRandomValues(array);
+            return Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        
+        async function hashPasswordWithSalt(password, salt) {
+            const encoder = new TextEncoder();
+            const saltedPassword = password + salt;
+            const data = encoder.encode(saltedPassword);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        
+        // ========== DATE/TIME VALIDATION - PREVENT PAST BOOKINGS ==========
+        function isShowtimeInPast(date, showtime) {
+            const [time, modifier] = showtime.split(' ');
+            let [hours, minutes] = time.split(':');
+            minutes = minutes || '00';
+            
+            // Convert to 24-hour format
+            if (modifier === 'PM' && hours !== '12') {
+                hours = parseInt(hours) + 12;
+            }
+            if (modifier === 'AM' && hours === '12') {
+                hours = 0;
+            }
+            
+            const showDateTime = new Date(date);
+            showDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+            
+            const now = new Date();
+            return showDateTime < now;  // Returns true if showtime is in the past
+        }
+        
+        function isDateInPast(date) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const checkDate = new Date(date);
+            checkDate.setHours(0, 0, 0, 0);
+            return checkDate < today;
+        }
+        
+        // ========== TOAST SYSTEM ==========
+        function showNotification(message, type = 'info', duration = 3000) {
+            let container = document.getElementById('toastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.style.position = 'fixed';
+                container.style.top = '80px';
+                container.style.right = '20px';
+                container.style.zIndex = '2000';
+                document.body.appendChild(container);
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            
+            let icon = 'ℹ️';
+            if (type === 'success') icon = '✅';
+            if (type === 'error') icon = '❌';
+            if (type === 'warning') icon = '⚠️';
+            
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <div class="toast-icon">${icon}</div>
+                    <div class="toast-message">${escapeHtml(message)}</div>
+                    <div class="toast-close" onclick="this.parentElement.parentElement.remove()">✕</div>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentElement) toast.remove();
+            }, duration);
+        }
+        
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+        
+        // ========== SECURITY FUNCTIONS ==========
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function enhancedSanitize(input) {
+            if (!input) return '';
+            let sanitized = input.replace(/<[^>]*>/g, '');
+            sanitized = sanitized.replace(/javascript:/gi, '');
+            sanitized = sanitized.replace(/on\w+=/gi, '');
+            sanitized = sanitized.substring(0, 200);
+            return sanitized;
+        }
+        
+        // ========== MOVIE DATA ==========
+        const movies = [
+            { id: 1, title: "Deadpool 3", genre: "Action/Comedy", duration: "2h 10m", rating: 8.7, language: "English", year: 2024, poster: "https://image.tmdb.org/t/p/w500/8cdWjvZcOrTJpCjKi5xwU5XjFwF.jpg" },
+            { id: 2, title: "Kalki 2898 AD", genre: "Sci-Fi", duration: "2h 55m", rating: 8.5, language: "Telugu/Hindi", year: 2024, poster: "https://image.tmdb.org/t/p/w500/8gYqgQwQxXxXxXxXxXxXxXxXxX.jpg" },
+            { id: 3, title: "Inside Out 2", genre: "Animation", duration: "1h 40m", rating: 8.3, language: "English", year: 2024, poster: "https://image.tmdb.org/t/p/w500/6oGQqWqWqWqWqWqWqWqWqWqWqWqWq.jpg" },
+            { id: 4, title: "Bad Boys: Ride or Die", genre: "Action", duration: "1h 55m", rating: 7.8, language: "English", year: 2024, poster: "https://image.tmdb.org/t/p/w500/5HqQqWqWqWqWqWqWqWqWqWqWqWqW.jpg" },
+            { id: 5, title: "Maharaja", genre: "Drama", duration: "2h 20m", rating: 8.9, language: "Tamil", year: 2024, poster: "https://image.tmdb.org/t/p/w500/7KqQqWqWqWqWqWqWqWqWqWqWqWqW.jpg" },
+            { id: 6, title: "A Quiet Place: Day One", genre: "Horror", duration: "1h 40m", rating: 7.5, language: "English", year: 2024, poster: "https://image.tmdb.org/t/p/w500/9LqQqWqWqWqWqWqWqWqWqWqWqWqW.jpg" },
+            { id: 7, title: "Despicable Me 4", genre: "Animation", duration: "1h 35m", rating: 7.2, language: "English", year: 2024, poster: "https://image.tmdb.org/t/p/w500/2JqQqWqWqWqWqWqWqWqWqWqWqWqW.jpg" },
+            { id: 8, title: "Sarfira", genre: "Drama", duration: "2h 15m", rating: 8.1, language: "Hindi", year: 2024, poster: "https://image.tmdb.org/t/p/w500/3MqQqWqWqWqWqWqWqWqWqWqWqWqW.jpg" }
+        ];
+
+        const theaters = [
+            { id: 1, name: "PVR Cinemas", location: "City Center Mall, Andheri East", screens: 6 },
+            { id: 2, name: "INOX Megaplex", location: "Downtown Plaza, Bandra West", screens: 8 },
+            { id: 3, name: "Cinepolis", location: "Westend Mall, Pune", screens: 5 },
+            { id: 4, name: "Miraj Cinema", location: "East Gate, Thane", screens: 4 }
+        ];
+
+        const showtimes = ["10:00 AM", "1:00 PM", "4:00 PM", "7:00 PM", "10:00 PM"];
+        
+        function getAvailableDates() {
+            const dates = [];
+            const today = new Date();
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                const dateStr = date.toISOString().split('T')[0];
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                const monthDay = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const isPast = isDateInPast(dateStr);
+                dates.push({
+                    value: dateStr,
+                    display: `${dayName}, ${monthDay}`,
+                    fullDate: dateStr,
+                    isPast: isPast
+                });
+            }
+            return dates;
+        }
+
+        let currentUser = null;
+        let selectedMovie = null;
+        let selectedTheater = null;
+        let selectedDate = null;
+        let selectedShowtime = null;
+        let selectedSeats = [];
+        let allBookings = [];
+        let users = [];
+
+        function loadData() {
+            const savedUsers = localStorage.getItem('cinebook_users_secure');
+            if (savedUsers) {
+                try {
+                    users = JSON.parse(savedUsers);
+                } catch(e) { users = []; }
+            }
+            
+            const savedUser = localStorage.getItem('cinebook_current_user');
+            if (savedUser) {
+                try {
+                    currentUser = JSON.parse(savedUser);
+                    updateUI();
+                } catch(e) { currentUser = null; }
+            }
+            
+            const savedBookings = localStorage.getItem('cinebook_bookings');
+            if (savedBookings) {
+                try {
+                    allBookings = JSON.parse(savedBookings);
+                } catch(e) { allBookings = []; }
+            }
+        }
+
+        function saveUsers() { localStorage.setItem('cinebook_users_secure', JSON.stringify(users)); }
+        function saveBookings() { localStorage.setItem('cinebook_bookings', JSON.stringify(allBookings)); }
+        
+        function saveCurrentUser() {
+            if (currentUser) {
+                localStorage.setItem('cinebook_current_user', JSON.stringify(currentUser));
+            } else {
+                localStorage.removeItem('cinebook_current_user');
+            }
+        }
+
+        function updateUI() {
+            const isLoggedIn = !!currentUser;
+            document.getElementById('loginNavBtn').style.display = isLoggedIn ? 'none' : 'inline';
+            document.getElementById('signupNavBtn').style.display = isLoggedIn ? 'none' : 'inline';
+            document.getElementById('logoutNavBtn').style.display = isLoggedIn ? 'inline' : 'none';
+            document.getElementById('myBookingsLink').style.display = isLoggedIn ? 'inline' : 'none';
+            const avatar = document.getElementById('userAvatar');
+            if (isLoggedIn && currentUser) {
+                avatar.style.display = 'flex';
+                avatar.textContent = currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U';
+            } else {
+                avatar.style.display = 'none';
+            }
+        }
+
+        function showSection(section) {
+            document.getElementById('moviesSection').style.display = section === 'movies' ? 'block' : 'none';
+            document.getElementById('bookingsSection').style.display = section === 'bookings' ? 'block' : 'none';
+            document.getElementById('homeHero').style.display = section === 'movies' ? 'block' : 'none';
+            if (section === 'bookings') renderBookings();
+        }
+
+        function showBookings() { showSection('bookings'); }
+
+        function openAuthModal(type) {
+            const container = document.getElementById('authFormContainer');
+            if (type === 'login') {
+                container.innerHTML = `
+                    <h2 class="modal-title">🔐 Login to CineBook</h2>
+                    <input type="email" id="loginEmail" class="form-input" placeholder="Email" autocomplete="off" maxlength="100">
+                    <input type="password" id="loginPassword" class="form-input" placeholder="Password" maxlength="50">
+                    <button class="btn btn-primary" onclick="handleLogin()" style="width:100%;">Login</button>
+                    <p style="text-align:center; margin-top:1rem; color:#aaa;">Don't have an account? <span style="color:#f5c518; cursor:pointer;" onclick="openAuthModal('signup')">Sign Up</span></p>
+                    <div class="security-notice" style="margin-top:1rem; padding:0.5rem; background:#0a0a0a; border-radius:8px; font-size:0.7rem;">🔒 Passwords are hashed using SHA-256 + Salt</div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <h2 class="modal-title">📝 Create Account</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <input type="text" id="signupName" class="form-input" placeholder="Full Name" maxlength="50">
+                        </div>
+                        <div class="form-group">
+                            <input type="tel" id="signupPhone" class="form-input" placeholder="Phone Number" maxlength="15">
+                        </div>
+                    </div>
+                    <input type="email" id="signupEmail" class="form-input" placeholder="Email" maxlength="100">
+                    <input type="password" id="signupPassword" class="form-input" placeholder="Password (min 6 characters)" maxlength="50">
+                    <input type="password" id="signupConfirm" class="form-input" placeholder="Confirm Password" maxlength="50">
+                    <button class="btn btn-primary" onclick="handleSignup()" style="width:100%;">Sign Up</button>
+                    <p style="text-align:center; margin-top:1rem; color:#aaa;">Already have an account? <span style="color:#f5c518; cursor:pointer;" onclick="openAuthModal('login')">Login</span></p>
+                    <div class="security-notice" style="margin-top:1rem; padding:0.5rem; background:#0a0a0a; border-radius:8px; font-size:0.7rem;">🔒 Your password will be securely hashed before storage</div>
+                `;
+            }
+            document.getElementById('authModal').style.display = 'flex';
+        }
+
+        function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
+        function closeBookingModal() { document.getElementById('bookingModal').style.display = 'none'; }
+        function closePaymentModal() { document.getElementById('paymentModal').style.display = 'none'; }
+
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function validatePhone(phone) {
+            return /^[\d\s\+\(\)\-]{10,15}$/.test(phone);
+        }
+
+        async function handleSignup() {
+            const name = document.getElementById('signupName')?.value.trim();
+            const phone = document.getElementById('signupPhone')?.value.trim();
+            const email = document.getElementById('signupEmail')?.value.trim();
+            const password = document.getElementById('signupPassword')?.value;
+            const confirm = document.getElementById('signupConfirm')?.value;
+
+            if (!name || !phone || !email || !password) {
+                showNotification('Please fill all fields', 'error');
+                return;
+            }
+            if (name.length < 2 || name.length > 50) {
+                showNotification('Name must be between 2 and 50 characters', 'error');
+                return;
+            }
+            if (!validatePhone(phone)) {
+                showNotification('Please enter a valid phone number', 'error');
+                return;
+            }
+            if (!validateEmail(email)) {
+                showNotification('Please enter a valid email address', 'error');
+                return;
+            }
+            if (password.length < 6) {
+                showNotification('Password must be at least 6 characters', 'error');
+                return;
+            }
+            if (password !== confirm) {
+                showNotification('Passwords do not match', 'error');
+                return;
+            }
+            if (users.find(u => u.email === email)) {
+                showNotification('Email already registered! Please login.', 'warning');
+                return;
+            }
+
+            showLoading();
+            
+            try {
+                const salt = generateSalt();
+                const passwordHash = await hashPasswordWithSalt(password, salt);
+                
+                users.push({
+                    id: Date.now(),
+                    name: enhancedSanitize(name),
+                    phone: enhancedSanitize(phone),
+                    email: enhancedSanitize(email),
+                    passwordHash: passwordHash,
+                    salt: salt
+                });
+                saveUsers();
+                hideLoading();
+                showNotification('Account created successfully! Please login.', 'success');
+                openAuthModal('login');
+            } catch (error) {
+                hideLoading();
+                showNotification('Error creating account. Please try again.', 'error');
+            }
+        }
+
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail')?.value.trim();
+            const password = document.getElementById('loginPassword')?.value;
+
+            if (!email || !password) {
+                showNotification('Please enter email and password', 'error');
+                return;
+            }
+            
+            if (!validateEmail(email)) {
+                showNotification('Please enter a valid email address', 'error');
+                return;
+            }
+
+            showLoading();
+            
+            try {
+                const user = users.find(u => u.email === email);
+                if (!user) {
+                    hideLoading();
+                    showNotification('Invalid credentials', 'error');
+                    return;
+                }
+                
+                const enteredHash = await hashPasswordWithSalt(password, user.salt);
+                
+                if (enteredHash === user.passwordHash) {
+                    currentUser = { id: user.id, name: user.name, email: user.email, phone: user.phone };
+                    saveCurrentUser();
+                    updateUI();
+                    closeAuthModal();
+                    hideLoading();
+                    showNotification(`Welcome back, ${user.name}! 🎬`, 'success');
+                } else {
+                    hideLoading();
+                    showNotification('Invalid credentials', 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showNotification('Login error. Please try again.', 'error');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('cinebook_current_user');
+            updateUI();
+            showSection('movies');
+            showNotification('Logged out successfully! 👋', 'info');
+        }
+
+        function renderMovies() {
+            const container = document.getElementById('movieGrid');
+            const topRated = document.getElementById('topRatedGrid');
+            
+            container.innerHTML = movies.slice(0, 6).map(movie => `
+                <div class="movie-card" onclick="selectMovie(${movie.id})">
+                    <div class="movie-poster" style="background-image: url('${escapeHtml(movie.poster)}'); background-size: cover;">
+                        <div class="movie-rating">⭐ ${movie.rating}</div>
+                    </div>
+                    <div class="movie-info">
+                        <div class="movie-title">${escapeHtml(movie.title)}</div>
+                        <div class="movie-meta"><span>🎬 ${escapeHtml(movie.genre)}</span><span>⏱️ ${escapeHtml(movie.duration)}</span></div>
+                        <div class="movie-meta">${escapeHtml(movie.language)} | ${movie.year}</div>
+                        <button class="book-btn">Book Tickets</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            topRated.innerHTML = movies.filter(m => m.rating >= 8).slice(0, 4).map(movie => `
+                <div class="movie-card" onclick="selectMovie(${movie.id})">
+                    <div class="movie-poster" style="background-image: url('${escapeHtml(movie.poster)}'); background-size: cover;">
+                        <div class="movie-rating">⭐ ${movie.rating}</div>
+                    </div>
+                    <div class="movie-info">
+                        <div class="movie-title">${escapeHtml(movie.title)}</div>
+                        <div class="movie-meta"><span>🎬 ${escapeHtml(movie.genre)}</span><span>⏱️ ${escapeHtml(movie.duration)}</span></div>
+                        <button class="book-btn">Book Now</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectMovie(movieId) {
+            if (!currentUser) {
+                showNotification('Please login to book tickets!', 'warning');
+                openAuthModal('login');
+                return;
+            }
+            selectedMovie = movies.find(m => m.id === movieId);
+            selectedTheater = null;
+            selectedDate = null;
+            selectedShowtime = null;
+            selectedSeats = [];
+            showTheaterSelection();
+        }
+
+        function showTheaterSelection() {
+            document.getElementById('bookingSteps').innerHTML = `
+                <h2 class="modal-title">🎬 ${escapeHtml(selectedMovie.title)}</h2>
+                <h3>Select Theater</h3>
+                <div class="theater-list">
+                    ${theaters.map(t => `<div class="theater-item" onclick="selectTheater(${t.id})">🎭 ${escapeHtml(t.name)}<br><small>📍 ${escapeHtml(t.location)} | ${t.screens} Screens</small></div>`).join('')}
+                </div>
+                <button class="btn btn-secondary" onclick="closeBookingModal()">Cancel</button>
+            `;
+            document.getElementById('bookingModal').style.display = 'flex';
+        }
+
+        function selectTheater(id) {
+            selectedTheater = theaters.find(t => t.id === id);
+            showDateSelection();
+        }
+
+        function showDateSelection() {
+            const dates = getAvailableDates();
+            document.getElementById('bookingSteps').innerHTML = `
+                <h2 class="modal-title">🎬 ${escapeHtml(selectedMovie.title)}</h2>
+                <h3>🎭 ${escapeHtml(selectedTheater.name)}</h3>
+                <h3>Select Date</h3>
+                <div class="dates-list" style="flex-direction:row; flex-wrap:wrap;">
+                    ${dates.map(d => `<div class="date-btn ${d.isPast ? 'disabled' : ''}" onclick="${!d.isPast ? `selectDate('${d.value}', this)` : ''}">${d.display}${d.isPast ? '<span class="past-indicator">Past</span>' : ''}</div>`).join('')}
+                </div>
+                <button class="btn btn-secondary" onclick="showTheaterSelection()">← Back</button>
+            `;
+        }
+
+        function selectDate(date, element) {
+            selectedDate = date;
+            document.querySelectorAll('.date-btn').forEach(btn => btn.classList.remove('selected'));
+            element.classList.add('selected');
+            showShowtimeSelection();
+        }
+
+        function showShowtimeSelection() {
+            // Filter out past showtimes for today's date
+            let availableShowtimes = [...showtimes];
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            
+            if (selectedDate === todayStr) {
+                availableShowtimes = showtimes.filter(showtime => {
+                    return !isShowtimeInPast(selectedDate, showtime);
+                });
+            }
+            
+            if (availableShowtimes.length === 0) {
+                document.getElementById('bookingSteps').innerHTML = `
+                    <h2 class="modal-title">🎬 ${escapeHtml(selectedMovie.title)}</h2>
+                    <h3>🎭 ${escapeHtml(selectedTheater.name)}</h3>
+                    <h3>📅 ${selectedDate}</h3>
+                    <div style="text-align:center; padding:2rem; background:#2a2a2a; border-radius:12px; margin:1rem 0;">
+                        ⚠️ No shows available for this date.<br>All shows have already passed.
+                    </div>
+                    <button class="btn btn-secondary" onclick="showDateSelection()">← Back to Dates</button>
+                `;
+                return;
+            }
+            
+            document.getElementById('bookingSteps').innerHTML = `
+                <h2 class="modal-title">🎬 ${escapeHtml(selectedMovie.title)}</h2>
+                <h3>🎭 ${escapeHtml(selectedTheater.name)}</h3>
+                <h3>📅 ${selectedDate}</h3>
+                <h3>Select Showtime</h3>
+                <div class="showtimes">
+                    ${availableShowtimes.map(t => `<div class="showtime-btn" onclick="selectShowtime('${escapeHtml(t)}')">${escapeHtml(t)}</div>`).join('')}
+                </div>
+                <button class="btn btn-secondary" onclick="showDateSelection()">← Back</button>
+            `;
+        }
+
+        function selectShowtime(time) {
+            // Final validation before proceeding
+            if (isShowtimeInPast(selectedDate, time)) {
+                showNotification('Cannot book a show that has already started!', 'error');
+                showShowtimeSelection();
+                return;
+            }
+            selectedShowtime = time;
+            showSeatSelection();
+        }
+
+        function isSeatBooked(seatId) {
+            return allBookings.some(b => 
+                b.movieId === selectedMovie.id && 
+                b.theaterId === selectedTheater.id && 
+                b.date === selectedDate &&
+                b.showtime === selectedShowtime && 
+                b.seats.includes(seatId)
+            );
+        }
+
+        function toggleSeat(seatId) {
+            if (selectedSeats.includes(seatId)) {
+                selectedSeats = selectedSeats.filter(s => s !== seatId);
+            } else if (selectedSeats.length < 8) {
+                selectedSeats.push(seatId);
+            } else {
+                showNotification('Maximum 8 seats per booking!', 'warning');
+            }
+            showSeatSelection();
+        }
+
+        function showSeatSelection() {
+            let seatsHtml = '';
+            for (let r = 0; r < 8; r++) {
+                const row = String.fromCharCode(65 + r);
+                for (let s = 1; s <= 10; s++) {
+                    const id = `${row}${s}`;
+                    const booked = isSeatBooked(id);
+                    const selected = selectedSeats.includes(id);
+                    seatsHtml += `<div class="seat ${booked ? 'booked' : (selected ? 'selected' : 'available')}" onclick="${!booked ? `toggleSeat('${id}')` : ''}">${id}</div>`;
+                }
+            }
+            document.getElementById('bookingSteps').innerHTML = `
+                <h2 class="modal-title">🎬 ${escapeHtml(selectedMovie.title)}</h2>
+                <h3>🎭 ${escapeHtml(selectedTheater.name)}</h3>
+                <h3>📅 ${selectedDate} | ⏰ ${escapeHtml(selectedShowtime)}</h3>
+                <div class="screen">🎬 SCREEN 🎬</div>
+                <div class="seats-grid">${seatsHtml}</div>
+                <div class="legend">
+                    <div><div class="seat available" style="width:25px;height:25px;"></div> Available</div>
+                    <div><div class="seat selected" style="width:25px;height:25px;"></div> Selected</div>
+                    <div><div class="seat booked" style="width:25px;height:25px;"></div> Booked</div>
+                </div>
+                <div class="booking-summary">
+                    <strong>Selected Seats:</strong> ${selectedSeats.length ? selectedSeats.join(', ') : 'None'}<br>
+                    <strong>Total:</strong> ₹${selectedSeats.length * 250}
+                </div>
+                <button class="confirm-btn" onclick="proceedToPayment()" ${!selectedSeats.length ? 'disabled' : ''}>Proceed to Payment (₹${selectedSeats.length * 250})</button>
+                <button class="btn btn-secondary" onclick="showShowtimeSelection()">← Back</button>
+            `;
+        }
+
+        function proceedToPayment() {
+            if (!selectedSeats.length) return;
+            // Final check before payment
+            if (isShowtimeInPast(selectedDate, selectedShowtime)) {
+                showNotification('This show has already started! Cannot book.', 'error');
+                closeBookingModal();
+                return;
+            }
+            closeBookingModal();
+            document.getElementById('paymentModal').style.display = 'flex';
+        }
+
+        function processPayment(method) {
+            showLoading();
+            
+            setTimeout(() => {
+                const booking = {
+                    id: Date.now(),
+                    bookingId: 'CB' + Date.now().toString(36).toUpperCase(),
+                    movieId: selectedMovie.id,
+                    movieTitle: selectedMovie.title,
+                    moviePoster: selectedMovie.poster,
+                    theaterId: selectedTheater.id,
+                    theaterName: selectedTheater.name,
+                    theaterLocation: selectedTheater.location,
+                    date: selectedDate,
+                    showtime: selectedShowtime,
+                    seats: [...selectedSeats],
+                    totalAmount: selectedSeats.length * 250,
+                    bookingDate: new Date().toISOString(),
+                    userEmail: currentUser.email,
+                    userName: currentUser.name,
+                    userPhone: currentUser.phone,
+                    paymentMethod: method
+                };
+                allBookings.push(booking);
+                saveBookings();
+                hideLoading();
+                closePaymentModal();
+                showNotification(`Booking confirmed! 🎉 Total: ₹${booking.totalAmount}`, 'success');
+                showTicketConfirmation(booking);
+                selectedSeats = [];
+            }, 500);
+        }
+
+        function showTicketConfirmation(booking) {
+            const date = new Date(booking.bookingDate).toLocaleString();
+            document.getElementById('bookingSteps').innerHTML = `
+                <div class="ticket" id="ticketContent">
+                    <h2 style="color:#f5c518;">🎟️ BOOKING CONFIRMED!</h2>
+                    <div style="width:100px;height:140px;margin:1rem auto;background-image:url('${escapeHtml(booking.moviePoster)}');background-size:cover;border-radius:10px;"></div>
+                    <h3>${escapeHtml(booking.movieTitle)}</h3>
+                    <p><strong>Booking ID:</strong> ${escapeHtml(booking.bookingId)}</p>
+                    <p><strong>Name:</strong> ${escapeHtml(booking.userName)}</p>
+                    <p><strong>Theater:</strong> ${escapeHtml(booking.theaterName)}, ${escapeHtml(booking.theaterLocation)}</p>
+                    <p><strong>Date:</strong> ${escapeHtml(booking.date)} | <strong>Show:</strong> ${escapeHtml(booking.showtime)}</p>
+                    <p><strong>Seats:</strong> ${escapeHtml(booking.seats.join(', '))}</p>
+                    <p><strong>Amount:</strong> ₹${booking.totalAmount} | <strong>Payment:</strong> ${escapeHtml(booking.paymentMethod.toUpperCase())}</p>
+                    <p><strong>Booked on:</strong> ${escapeHtml(date)}</p>
+                    <div style="margin:1rem 0; padding:0.5rem; background:#0a0a0a; border-radius:8px;">
+                        <span>📱 Show this ticket at the counter</span>
+                    </div>
+                    <button class="download-btn" onclick="downloadTicketAsPNG()">⬇️ Download Ticket (PNG)</button>
+                    <button class="btn btn-secondary" onclick="closeBookingModal(); showSection('bookings');" style="margin-top:1rem;">View My Bookings</button>
+                </div>
+            `;
+            document.getElementById('bookingModal').style.display = 'flex';
+        }
+
+        function downloadTicketAsPNG() {
+            const ticket = document.getElementById('ticketContent');
+            if (!ticket) {
+                showNotification('Ticket not found!', 'error');
+                return;
+            }
+            
+            showNotification('Generating ticket...', 'info');
+            
+            if (typeof html2canvas !== 'undefined') {
+                html2canvas(ticket, {
+                    scale: 2,
+                    backgroundColor: '#1a1a1a',
+                    logging: false
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `CineBook_Ticket_${Date.now()}.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                    showNotification('Ticket downloaded!', 'success');
+                }).catch(err => {
+                    console.error('Download error:', err);
+                    showNotification('Download failed. Try right-click + Save As.', 'error');
+                });
+            } else {
+                showNotification('Please right-click on the ticket and select "Save as Image"', 'warning');
+            }
+        }
+
+        function renderBookings() {
+            const userBookings = allBookings.filter(b => b.userEmail === currentUser?.email);
+            const container = document.getElementById('bookingsList');
+            if (!userBookings.length) {
+                container.innerHTML = `<div style="text-align:center;padding:3rem;background:#1a1a1a;border-radius:20px;"><p>🎬 No bookings yet.</p><button class="btn btn-primary" onclick="showSection('movies')">Browse Movies</button></div>`;
+                return;
+            }
+            container.innerHTML = userBookings.map(b => `
+                <div class="movie-card" style="margin-bottom:1rem;">
+                    <div style="display:flex;flex-wrap:wrap;gap:1rem;padding:1rem;">
+                        <div style="width:80px;height:110px;background-image:url('${escapeHtml(b.moviePoster)}');background-size:cover;border-radius:8px;"></div>
+                        <div style="flex:1;">
+                            <h3>${escapeHtml(b.movieTitle)}</h3>
+                            <p>🎭 ${escapeHtml(b.theaterName)} | 📍 ${escapeHtml(b.theaterLocation)}</p>
+                            <p>📅 ${escapeHtml(b.date)} | ⏰ ${escapeHtml(b.showtime)}</p>
+                            <p>🎫 Seats: ${escapeHtml(b.seats.join(', '))}</p>
+                            <p>💰 ₹${b.totalAmount} | 📅 ${new Date(b.bookingDate).toLocaleDateString()}</p>
+                            <p style="color:#f5c518;">🎟️ ID: ${escapeHtml(b.bookingId)}</p>
+                            <button class="btn btn-secondary" onclick="reprintTicket(${b.id})" style="margin-top:0.5rem;">⬇️ Reprint Ticket</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function reprintTicket(bookingId) {
+            const booking = allBookings.find(b => b.id === bookingId);
+            if (booking) {
+                showNotification('Loading your ticket...', 'info');
+                showTicketConfirmation(booking);
+            }
+        }
+
+        // Load html2canvas
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        script.onload = () => console.log('html2canvas loaded');
+        script.onerror = () => console.log('html2canvas failed to load');
+        document.head.appendChild(script);
+
+        // Initialize
+        loadData();
+        renderMovies();
+        
+        // Display current time in console for debugging
+        console.log('Current time:', new Date().toLocaleString());
+    </script>
+</body>
+</html>
